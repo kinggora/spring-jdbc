@@ -32,9 +32,6 @@ public class MemberServiceV2 {
         } finally {
             release(con);
         }
-
-
-
     }
 
     private void bizLogic(Connection con, String fromId, String toId, int money) throws SQLException {
@@ -49,7 +46,6 @@ public class MemberServiceV2 {
     private void validation(Member toMember) {
         if (toMember.getMemberId().equals("ex")) {
             throw new IllegalStateException("이체 중 예외 발생");
-
         }
     }
 

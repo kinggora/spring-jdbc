@@ -8,8 +8,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 
 import static hello.jdbc.connection.ConnectionConst.*;
@@ -25,12 +30,17 @@ class MemberServiceV2Test {
     MemberRepositoryV2 memberRepository;
     MemberServiceV2 memberService;
 
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        DataSource dataSource(){
+            return new DriverManagerDataSource(URL, USERNAME, PASSWORD);
+        }
 
-    @BeforeEach
-    void before() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource(URL, USERNAME, PASSWORD);
-        memberRepository = new MemberRepositoryV2(dataSource);
-        memberService = new MemberServiceV2(dataSource, memberRepository);
+        @Bean
+        PlatformTransactionManager transactionManager(){
+            return new DataSourceTransactionManager(dataSource());
+        }
     }
 
     @AfterEach
@@ -55,7 +65,6 @@ class MemberServiceV2Test {
         Member findMemberB = memberRepository.findById(memberB.getMemberId());
         Assertions.assertThat(findMemberA.getMoney()).isEqualTo(8000);
         Assertions.assertThat(findMemberB.getMoney()).isEqualTo(12000);
-
     }
 
     @Test
@@ -72,7 +81,6 @@ class MemberServiceV2Test {
         Assertions.assertThatThrownBy(() ->
                         memberService.accountTransfer(memberA.getMemberId(), memberEx.getMemberId(), 2000))
                 .isInstanceOf(IllegalStateException.class);
-
 
         //then
         Member findMemberA = memberRepository.findById(memberA.getMemberId());
